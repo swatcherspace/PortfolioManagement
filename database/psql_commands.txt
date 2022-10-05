@@ -30,19 +30,3 @@ CREATE TABLE fundamentals (
     debt_to_equity float8,
     face_value int
 );
-
-id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    pe_ratio = Column(float)
-    pb_ratio = Column(float)
-    market_cap = Column(float)
-    book_value = Column(float)
-    eps_ttm = Column(float)
-    roe = Column(float)
-    industry_pe = Column(float)
-    capped_type = Column(String)
-    dividend_yield_percent = Column(float)
-    debt_to_equity = Column(float)
-    face_value =  Column(Integer)
-
-

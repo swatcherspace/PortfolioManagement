@@ -4,9 +4,6 @@ from http.client import HTTPException
 import requests
 import pandas as pd
 # from database.db import SessionLocal,Stock
-# latest_payload = ""
-#     # reqUrl = "https://groww.in/v1/api/stocks_data/v1/tr_live_prices/exchange/NSE/segment/CASH/{}/latest".format(name)
-#     # latest_payload_response = requests.request("GET", reqUrl, data=latest_payload,  headers=headersList)
 class AnalyzeMetrics:
     def __init__(self,stockName, earningPS, divYield, priceEarning, currentMarketCap, \
         preveviousMarketCap,tenYearProfit, fiveYearProfit, tenYearDividend, \

@@ -8,9 +8,7 @@ from database.db import SessionLocal,init_schema,Stocks
 import pandas as pd
 from datetime import datetime
 from models.stockModels import StocksModel
-# latest_payload = ""
-#     # reqUrl = "https://groww.in/v1/api/stocks_data/v1/tr_live_prices/exchange/NSE/segment/CASH/{}/latest".format(name)
-#     # latest_payload_response = requests.request("GET", reqUrl, data=latest_payload,  headers=headersList)
+
 headersList = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/538.69 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/538.38",
         "Accept": "application/json",

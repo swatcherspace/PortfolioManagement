@@ -8,6 +8,7 @@ import uuid
 # # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 # # f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
+# Alter the below with your DB to begin with
 SQLALCHEMY_DATABASE_URL = "postgresql://abhishek:password@localhost:5432/stocks_watcher"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
