@@ -1,0 +1,48 @@
+psql -h localhost -d stocks_watcher -U abhishek 
+DROP table stocks;
+
+CREATE TABLE employees (
+	id serial PRIMARY KEY,
+    first_name varchar(80),
+    last_name varchar(80),
+    company_id integer,
+    work_email varchar(80),
+    manager_id integer,
+    dob  varchar(80),
+    employee_number  integer,
+    tax_id integer,
+    employment_status varchar(80),
+    marital_status varchar(80)
+);
+
+CREATE TABLE fundamentals (
+	id serial PRIMARY KEY,
+    name  varchar(80),
+    pe_ratio float8,
+    pb_ratio float8,
+    market_cap float8,
+    book_value float8,
+    eps_ttm float8,
+    roe float8,
+    industry_pe float8,
+    capped_type varchar(80),
+    dividend_yield_percent float8,
+    debt_to_equity float8,
+    face_value int
+);
+
+id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    pe_ratio = Column(float)
+    pb_ratio = Column(float)
+    market_cap = Column(float)
+    book_value = Column(float)
+    eps_ttm = Column(float)
+    roe = Column(float)
+    industry_pe = Column(float)
+    capped_type = Column(String)
+    dividend_yield_percent = Column(float)
+    debt_to_equity = Column(float)
+    face_value =  Column(Integer)
+
+
