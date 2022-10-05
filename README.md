@@ -6,6 +6,7 @@ Without his approach to get the NSE and BSE Data for learning/development i was 
 
 
 ## Create a DB and inside add the below table to get started:-
+```
 CREATE TABLE employees (
 	id serial PRIMARY KEY,
     first_name varchar(80),
@@ -19,7 +20,7 @@ CREATE TABLE employees (
     employment_status varchar(80),
     marital_status varchar(80)
 );
-
+```
 ## Pull the latest code [stock-market-india](https://github.com/maanavshah/stock-market-india) and place it on StockWatcher/stock-market-india 
 ## Same level as setup.sh and main.py file
 reference is in below image:-
@@ -50,8 +51,7 @@ Now let's install Express as a package for Node.js. At the command prompt type â
 
 
 
-
-
+```
 ## To install dependencies
 pipenv install -r requirements.txt
 
@@ -60,6 +60,7 @@ pipenv shell
 
 ## To run 
 ./setup.sh
+```
 
 After the installation, depending on the address you've modified, do whatever f** you wanna do with it.
 
