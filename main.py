@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-origins = ["http://localhost:8005"]
+origins = ["http://localhost:8000"]
 
 
 
