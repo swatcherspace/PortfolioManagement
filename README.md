@@ -3,18 +3,42 @@ Performs Fundamental Analysis On Stocks based on the realtime market data.
 
 ## Create a DB and inside add the below table to get started:-
 ```
-CREATE TABLE employees (
+CREATE TABLE stocks (
+    id integer NOT NULL,
+    name character varying,
+    type character varying,
+    open double precision,
+    high double precision,
+    low double precision,
+    close double precision,
+    ltp double precision,
+    volume double precision,
+    "lowPriceRange" double precision,
+    "highPriceRange" double precision,
+    time_created timestamp without time zone,
+    time_updated timestamp without time zone
+);
+
+CREATE TABLE fundamentals (
 	id serial PRIMARY KEY,
-    first_name varchar(80),
-    last_name varchar(80),
-    company_id integer,
-    work_email varchar(80),
-    manager_id integer,
-    dob  varchar(80),
-    employee_number  integer,
-    tax_id integer,
-    employment_status varchar(80),
-    marital_status varchar(80)
+    name  character varying,
+    shares_outstanding bigint,
+    dividend_rate double precision,
+    debt_to_equity double precision,
+    book_value_per_share double precision,
+    roe double precision,
+    current_ratio double precision,
+    pe_ratio double precision,
+    pb_ratio double precision,
+    market_cap double precision,
+    earning_per_share double precision,
+    industry_pe double precision,
+    capped_type varchar(80),
+    dividend_yield_percent double precision,
+    face_value integer,
+    news json,
+    time_created timestamp without time zone,
+    time_updated timestamp without time zone
 );
 ## To install dependencies
 pipenv install -r requirements.txt
