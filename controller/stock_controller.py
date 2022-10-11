@@ -27,7 +27,10 @@ class Stock:
             self._session = init_schema()
         except Exception as e:
             raise HTTPException("Can't connect to the DB")
-
+    async def get_fundamentals(self,name):
+        data = self._session.query(Stocks).filter_by(name=name).first()
+        return data
+    
     async def get_stocks(self,name):
         data = self._session.query(Stocks).filter_by(name=name).first()
         return data
@@ -160,7 +163,15 @@ class Stock:
         xl_file = xl_file[1:]
 
 
-         
+
+async def get_fundamentals(name):
+    stock = Stock()
+    try:
+        data = await stock.get_fundamentals(name)
+        return data
+    except Exception as e:
+            raise HTTPException("Error getting fundamentals",e)
+
 async def get_stocks(name):
     stock = Stock()
     try:
