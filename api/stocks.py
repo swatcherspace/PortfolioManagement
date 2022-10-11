@@ -47,11 +47,17 @@ async def delete(name: str):
         return {"Message":"Please enter the name"}
     return await stock_controller.delete_stocks(name)
 
-@stock.get("/get-by-name")
+@stock.get("/get-stock-by-name")
 async def get_Stocks(name: str):
     if name is None:
         return {"Message":"Please enter the name"}
     return await stock_controller.get_stocks(name)
+
+@stock.get("/get-fundamentals-by-name")
+async def get_Fundamentals(name: str):
+    if name is None:
+        return {"Message":"Please enter the name"}
+    return await stock_controller.get_fundamentals(name)
 
 @stock.get("/get-quotes")
 async def get_Quotes(name):
