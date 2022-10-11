@@ -29,6 +29,12 @@ async def upload_file(name: str, file: UploadFile = File(...)):
     return await stock_controller.upload_file(name, contents)
     return {"message": f"Successfully uploaded {file.filename}"}
 
+@stock.post("/fetch-fundamentals")
+async def create(name: str):
+    if name is None:
+        return {"Message":"Please enter the name"}
+    return await stock_controller.fetch_fundamentals(name)
+
 @stock.post("/create-stock")
 async def create(name: str):
     if name is None:
@@ -48,6 +54,6 @@ async def get_Stocks(name: str):
     return await stock_controller.get_stocks(name)
 
 @stock.get("/get-quotes")
-async def get_Quotes():
-    return await stock_controller.get_quotes()
+async def get_Quotes(name):
+    return await stock_controller.get_quotes(name)
     

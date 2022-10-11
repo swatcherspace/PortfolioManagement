@@ -1,32 +1,44 @@
+sudo -u postgres psql
+create user abhishek with encrypted password 'password';
+grant all privileges on database stocks_watcher to abhishek;
+psql -h localhost -p 5432 postgres
 psql -h localhost -d stocks_watcher -U abhishek 
 DROP table stocks;
 
-CREATE TABLE employees (
-	id serial PRIMARY KEY,
-    first_name varchar(80),
-    last_name varchar(80),
-    company_id integer,
-    work_email varchar(80),
-    manager_id integer,
-    dob  varchar(80),
-    employee_number  integer,
-    tax_id integer,
-    employment_status varchar(80),
-    marital_status varchar(80)
+CREATE TABLE stocks (
+    id integer NOT NULL,
+    name character varying,
+    type character varying,
+    open double precision,
+    high double precision,
+    low double precision,
+    close double precision,
+    ltp double precision,
+    volume double precision,
+    "lowPriceRange" double precision,
+    "highPriceRange" double precision,
+    time_created timestamp without time zone,
+    time_updated timestamp without time zone
 );
 
 CREATE TABLE fundamentals (
 	id serial PRIMARY KEY,
-    name  varchar(80),
-    pe_ratio float8,
-    pb_ratio float8,
-    market_cap float8,
-    book_value float8,
-    eps_ttm float8,
-    roe float8,
-    industry_pe float8,
+    name  character varying,
+    shares_outstanding bigint,
+    dividend_rate double precision,
+    debt_to_equity double precision,
+    book_value_per_share double precision,
+    roe double precision,
+    current_ratio double precision,
+    pe_ratio double precision,
+    pb_ratio double precision,
+    market_cap double precision,
+    earning_per_share double precision,
+    industry_pe double precision,
     capped_type varchar(80),
-    dividend_yield_percent float8,
-    debt_to_equity float8,
-    face_value int
+    dividend_yield_percent double precision,
+    face_value integer,
+    news json,
+    time_created timestamp without time zone,
+    time_updated timestamp without time zone
 );
