@@ -60,3 +60,6 @@ flit
 alembic
 python-dotenv
 fastapi-sqlalchemy
+nsetools
+yfinance 
+yahoo_fin

@@ -1,5 +1,5 @@
 from email.policy import default
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Float
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Float, JSON
 # from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
@@ -36,24 +36,28 @@ class Stocks(Base):
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
         
-# class Fundamentals(Base):
-#     __tablename__ = "fundamentals"
-#     id = Column(Integer, primary_key=True, index=True)
-#     name = Column(String)
-#     # pe_ratio = Column(float)
-#     # pb_ratio = Column(float)
-#     # market_cap = Column(float)
-#     # book_value = Column(float)
-#     # eps_ttm = Column(float)
-#     # roe = Column(float)
-#     # industry_pe = Column(float)
-#     capped_type = Column(String)
-#     # dividend_yield_percent = Column(float)
-#     # debt_to_equity = Column(float)
-#     face_value =  Column(Integer)
-#     fundamentals = relationship("stock")
-#     class Config:
-#         orm_mode = True
+class Fundamentals(Base):
+    __tablename__ = "fundamentals"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    shares_outstanding = Column(Integer)
+    dividend_rate = Column(Float)
+    debt_to_equity = Column(Float)
+    book_value_per_share = Column(Float)
+    roe = Column(Float)
+    current_ratio = Column(Float)
+    pe_ratio = Column(Float)
+    pb_ratio = Column(Float) #Price to Book Value
+    market_cap = Column(Float)
+    earning_per_share = Column(Float)
+    industry_pe = Column(Float)
+    capped_type = Column(String)
+    dividend_yield_percent = Column(Float)
+    face_value =  Column(Integer)
+    news = Column(JSON)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
 def init_schema():
     try:
         if sess == {}:

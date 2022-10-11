@@ -1,3 +1,4 @@
 Pipfile
 Pipfile.lock
 stockw_key.pem
+.DS_Store
