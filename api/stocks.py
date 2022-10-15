@@ -27,7 +27,6 @@ async def upload_file(name: str, file: UploadFile = File(...)):
     finally:
         await file.close()
     return await stock_controller.upload_file(name, contents)
-    return {"message": f"Successfully uploaded {file.filename}"}
 
 @stock.post("/fetch-fundamentals")
 async def create(name: str):
