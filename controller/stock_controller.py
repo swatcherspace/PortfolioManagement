@@ -8,9 +8,11 @@ from database.db import  Fundamentals, SessionLocal,init_schema,Stocks #Fundamen
 import pandas as pd
 from datetime import datetime
 from models.stockModels import StocksModel
+from sqlalchemy import desc
 import json
 from nsetools import Nse
 import yfinance as yf
+from datetime import datetime, timedelta
 headersList = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/538.69 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/538.38",
         "Accept": "application/json",
@@ -27,8 +29,20 @@ class Stock:
             self._session = init_schema()
         except Exception as e:
             raise HTTPException("Can't connect to the DB")
+    async def get_news(self,data):
+        news = []
+        if "news" in data:
+            news_data = json.loads(data["news"])
+            for i in news_data:
+                # Fetch 10 latest news    
+                if len(news) <= 10:
+                    news.append((i["title"], i["publisher"], i["link"], i["providerPublishTime"]))
+        return news
+
     async def get_fundamentals(self,name):
-        data = self._session.query(Stocks).filter_by(name=name).first()
+        data = self._session.query(Fundamentals).filter_by(name=name).first()
+        data =  row2dict(data)
+        data["news"] = await self.get_news(data)
         return data
     
     async def get_stocks(self,name):
@@ -37,9 +51,16 @@ class Stock:
     
     async def get_quotes(self, name):
         try:
-            pass           
-        except AttributeError as a:
-            print("Table Not present hence creating..")
+            data = self._session.query(Fundamentals).filter_by(name=name).order_by(desc(Fundamentals.time_created)).all()
+            result = []
+            for i in data:
+                result.append(row2dict(i))
+            news_data = []    
+            for i in result:    
+                news_data.append(await self.get_news(i))
+            return news_data
+        except Exception as a:
+            print("Table Not present hence creating..",a)
     async def stock_to_table(self, payload_response, market_type):
         if "NSE" in market_type:
             dt = datetime.now()    # for date and time
@@ -154,18 +175,23 @@ class Stock:
         self._session.commit()    
         return
 
-    async def fetch_fundamentals(self,name):
+    async def create_fundamentals(self,name):
         try:
             col = self._session.query(Stocks).filter_by(name=name).first()
-            stock_db_data = row2dict(col)
-            if stock_db_data["name"]==name:
-                if float(yf.Ticker(name).info['regularMarketPrice']):
-                    payload_response = yf.Ticker(name).info
-                    news = yf.Ticker(name).news
-                    await self.fundametals_to_table(payload_response, "NYSE", news)
-                elif nse.is_valid_code(name):
-                    pass
-            return {"message": "Successfully fetch_fundamentals Commited"} 
+            f_data = self._session.query(Fundamentals.id).filter_by(name=name).all()
+            if len(f_data) < 3: #Only 3 latest entries could be present at a time
+                stock_db_data = row2dict(col)
+                if stock_db_data["name"]==name:
+                    if float(yf.Ticker(name).info['regularMarketPrice']):
+                        payload_response = yf.Ticker(name).info
+                        news = yf.Ticker(name).news
+                        await self.fundametals_to_table(payload_response, "NYSE", news)
+                    elif nse.is_valid_code(name):
+                        pass
+                return {"message": "Successfully create_fundamentals Commited"} 
+            else:
+                # Delete older entries #todo
+                pass
         except AttributeError as a:
             print("Table Not present",a)
 
@@ -215,10 +241,10 @@ async def create_stocks(name):
     except Exception as e:
         raise HTTPException("Error creating stocks",e)
 
-async def fetch_fundamentals(name):
+async def create_fundamentals(name):
     stock = Stock()
     try:
-        data = await stock.fetch_fundamentals(name)
+        data = await stock.create_fundamentals(name)
         return data
     except Exception as e:
         raise HTTPException("Error creating stocks",e)

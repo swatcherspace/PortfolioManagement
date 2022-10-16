@@ -28,11 +28,11 @@ async def upload_file(name: str, file: UploadFile = File(...)):
         await file.close()
     return await stock_controller.upload_file(name, contents)
 
-@stock.post("/fetch-fundamentals")
+@stock.post("/create-fundamentals")
 async def create(name: str):
     if name is None:
         return {"Message":"Please enter the name"}
-    return await stock_controller.fetch_fundamentals(name)
+    return await stock_controller.create_fundamentals(name)
 
 @stock.post("/create-stock")
 async def create(name: str):
