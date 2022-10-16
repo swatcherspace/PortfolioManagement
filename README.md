@@ -47,7 +47,7 @@ pipenv install -r requirements.txt
 pipenv shell
 
 ## To run 
-./setup.sh
+uvicorn  main:app --reload 
 ```
 
 After the installation, depending on the address you've modified, do whatever f** you wanna do with it.
