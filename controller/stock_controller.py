@@ -174,24 +174,32 @@ class Stock:
         self._session.add(to_create)
         self._session.commit()    
         return
-
+    async def fundamental_insertion(self,col,name):
+        stock_db_data = row2dict(col)
+        if stock_db_data["name"]==name:
+            if float(yf.Ticker(name).info['regularMarketPrice']):
+                payload_response = yf.Ticker(name).info
+                news = yf.Ticker(name).news
+                await self.fundametals_to_table(payload_response, "NYSE", news)
+            elif nse.is_valid_code(name):
+                pass
+        return {"message": "Successfully create_fundamentals Commited"}
     async def create_fundamentals(self,name):
         try:
             col = self._session.query(Stocks).filter_by(name=name).first()
             f_data = self._session.query(Fundamentals.id).filter_by(name=name).all()
-            if len(f_data) < 3: #Only 3 latest entries could be present at a time
-                stock_db_data = row2dict(col)
-                if stock_db_data["name"]==name:
-                    if float(yf.Ticker(name).info['regularMarketPrice']):
-                        payload_response = yf.Ticker(name).info
-                        news = yf.Ticker(name).news
-                        await self.fundametals_to_table(payload_response, "NYSE", news)
-                    elif nse.is_valid_code(name):
-                        pass
-                return {"message": "Successfully create_fundamentals Commited"} 
+            length = len(f_data)
+            if  length < 3: #Only 3 latest entries could be present at a time
+                return await self.fundamental_insertion(col,name)
             else:
                 # Delete older entries #todo
-                pass
+                count = 0
+                for id in f_data:
+                    if count < 2:                        
+                        self._session.query(Fundamentals).filter_by(id=id[0]).delete()
+                        count += 1
+                #Complete the above entry
+                return await self.fundamental_insertion(col,name)
         except AttributeError as a:
             print("Table Not present",a)
 
