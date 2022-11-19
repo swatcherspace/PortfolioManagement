@@ -216,7 +216,14 @@ class Stock:
         xl_file.columns = xl_file.iloc[0]
         xl_file = xl_file[1:]
 
-
+    async def get_symbols(self):
+        #Wiki for reference/ may change later
+        data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+        #Convert to list
+        symbol = data["Symbol"].to_list()
+        name = data["Security"].to_list()
+        sp = dict(zip(symbol, name))
+        return sp
 
 async def get_fundamentals(name):
     stock = Stock()
@@ -273,3 +280,12 @@ async def delete_stocks(name):
         return data
     except Exception as e:
         raise HTTPException("Error deleting stocks",e)
+    
+async def get_symbols():
+    stock = Stock()
+    try:
+       data = await stock.get_symbols()
+       return data
+    except Exception as e:
+        raise HTTPException("Error getting stock symbols",e)
+    

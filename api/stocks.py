@@ -61,4 +61,7 @@ async def get_Fundamentals(name: str):
 @stock.get("/get-quotes")
 async def get_Quotes(name):
     return await stock_controller.get_quotes(name)
-    
+
+@stock.get("/get-stock-symbols")
+async def get_Symbols():
+    return await stock_controller.get_symbols()
