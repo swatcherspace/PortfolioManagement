@@ -27,13 +27,12 @@ async def upload_file(name: str, file: UploadFile = File(...)):
     finally:
         await file.close()
     return await stock_controller.upload_file(name, contents)
-    return {"message": f"Successfully uploaded {file.filename}"}
 
-@stock.post("/fetch-fundamentals")
+@stock.post("/create-fundamentals")
 async def create(name: str):
     if name is None:
         return {"Message":"Please enter the name"}
-    return await stock_controller.fetch_fundamentals(name)
+    return await stock_controller.create_fundamentals(name)
 
 @stock.post("/create-stock")
 async def create(name: str):
@@ -62,4 +61,7 @@ async def get_Fundamentals(name: str):
 @stock.get("/get-quotes")
 async def get_Quotes(name):
     return await stock_controller.get_quotes(name)
-    
+
+@stock.get("/get-stock-symbols")
+async def get_Symbols():
+    return await stock_controller.get_symbols()
