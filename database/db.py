@@ -5,6 +5,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.sql import func
 import uuid
+
+from sqlalchemy.orm import relationship
 # # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 # # f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
@@ -20,21 +22,6 @@ Base = declarative_base()
 
 def generate_uuid():
     return str(uuid.uuid4())   
-class Stocks(Base):
-    __tablename__ = "stocks"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    type = Column(String)
-    open = Column(Float)
-    high = Column(Float)
-    low = Column(Float)
-    close = Column(Float)
-    ltp = Column(Float)
-    volume = Column(Float)
-    lowPriceRange = Column(Float)
-    highPriceRange = Column(Float)
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
-    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
         
 class Fundamentals(Base):
     __tablename__ = "fundamentals"
@@ -57,6 +44,26 @@ class Fundamentals(Base):
     news = Column(JSON)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    parent_id = Column(Integer, ForeignKey("stocks.name", ondelete='CASCADE'))
+
+class Stocks(Base):
+    __tablename__ = "stocks"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    type = Column(String)
+    open = Column(Float)
+    high = Column(Float)
+    low = Column(Float)
+    close = Column(Float)
+    ltp = Column(Float)
+    volume = Column(Float)
+    lowPriceRange = Column(Float)
+    highPriceRange = Column(Float)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    child = relationship(Fundamentals, backref="stocks", passive_deletes=True)
 
 def init_schema():
     try:

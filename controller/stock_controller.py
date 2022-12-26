@@ -4,7 +4,7 @@ import imp
 # from select import select
 import requests
 from config import row2dict
-from database.db import  Fundamentals, SessionLocal,init_schema,Stocks #Fundamentals
+from database.db import  Fundamentals,init_schema,Stocks #Fundamentals
 import pandas as pd
 from datetime import datetime
 from models.stockModels import StocksModel
@@ -65,21 +65,24 @@ class Stock:
         if "NSE" in market_type:
             dt = datetime.now()    # for date and time
             ts = datetime.utcnow()
-            to_create = Stocks(
-                    name=payload_response["symbol"],
-                    type=payload_response["marketType"],
-                    open=float(payload_response["open"]),
-                    high=float(payload_response["dayHigh"]),
-                    low=float(payload_response["dayLow"]),
-                    close=float(payload_response["previousClose"]),
-                    ltp=float(payload_response["lastPrice"]),
-                    volume=float(payload_response["totalTradedVolume"]), 
-                    lowPriceRange=float(payload_response["low52"]),
-                    highPriceRange=float(payload_response["high52"]),
-                    time_created=dt, #traded date
-                    time_updated=ts
-                )
-
+            try:
+                to_create = Stocks(
+                        name=payload_response["symbol"],
+                        type=payload_response["marketType"],
+                        open=float(payload_response["open"]),
+                        high=float(payload_response["dayHigh"]),
+                        low=float(payload_response["dayLow"]),
+                        close=float(payload_response["previousClose"]),
+                        ltp=float(payload_response["lastPrice"]),
+                        volume=float(payload_response["totalTradedVolume"]), 
+                        lowPriceRange=float(payload_response["low52"]),
+                        highPriceRange=float(payload_response["high52"]),
+                        time_created=dt, #traded date
+                        time_updated=ts
+                    )
+            except Exception as e:
+                return {"message": "KeyError in NSE".format(e)}
+                
         elif "NYSE" in market_type:
             dt = datetime.now()    # for date and time
             ts = datetime.utcnow()
@@ -112,12 +115,12 @@ class Stock:
         except AttributeError as a:
             print("Table Not present hence creating..")
         except Exception as e:
-            raise HTTPException("Error getting stocks from DB",e)  
+            raise HTTPException("Error getting stocks from DB",e)
+        print(yf.Ticker(name).info)
         if nse.is_valid_code(name):
             payload_response = nse.get_quote(name)
             msg = await self.stock_to_table(payload_response, "NSE")
-
-        elif float(yf.Ticker(name).info['regularMarketPrice']):
+        else:
             payload_response = yf.Ticker(name).info
             msg = await self.stock_to_table(payload_response, "NYSE")
         return {"message": "Successfully Commited {}".format(msg)}
@@ -176,20 +179,24 @@ class Stock:
         return
     async def fundamental_insertion(self,col,name):
         stock_db_data = row2dict(col)
+        
         if stock_db_data["name"]==name:
+            if nse.is_valid_code(name):
+                #Need to add the fetcher 
+                return {"message": "Successfully create_fundamentals Commited"}
             if float(yf.Ticker(name).info['regularMarketPrice']):
                 payload_response = yf.Ticker(name).info
                 news = yf.Ticker(name).news
                 await self.fundametals_to_table(payload_response, "NYSE", news)
-            elif nse.is_valid_code(name):
-                pass
+            
         return {"message": "Successfully create_fundamentals Commited"}
     async def create_fundamentals(self,name):
         try:
             col = self._session.query(Stocks).filter_by(name=name).first()
             f_data = self._session.query(Fundamentals.id).filter_by(name=name).all()
             length = len(f_data)
-            if  length < 3: #Only 3 latest entries could be present at a time
+            print(f_data, length)
+            if length < 3: #Only 3 latest entries could be present at a time
                 return await self.fundamental_insertion(col,name)
             else:
                 # Delete older entries #todo
@@ -205,7 +212,6 @@ class Stock:
 
     async def delete_stocks(self,name):
         self._session.query(Stocks).filter_by(name=name).delete()
-        self._session.query(Fundamentals).filter_by(name=name).delete()
         self._session.commit()
         return {"message": "Successfully Deleted"}
 
