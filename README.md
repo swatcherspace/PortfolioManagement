@@ -3,9 +3,10 @@ Performs Fundamental Analysis On Stocks based on the realtime market data.
 
 ## Create a DB and inside add the below table to get started:-
 ```
+
 CREATE TABLE stocks (
-    id integer NOT NULL,
-    name character varying,
+    id serial PRIMARY KEY,
+    name character varying NOT NULL UNIQUE,
     type character varying,
     open double precision,
     high double precision,
@@ -21,7 +22,7 @@ CREATE TABLE stocks (
 
 CREATE TABLE fundamentals (
 	id serial PRIMARY KEY,
-    name  character varying,
+    name character varying NOT NULL UNIQUE references stocks(name) ON DELETE CASCADE,
     shares_outstanding bigint,
     dividend_rate double precision,
     debt_to_equity double precision,
@@ -39,7 +40,9 @@ CREATE TABLE fundamentals (
     news json,
     time_created timestamp without time zone,
     time_updated timestamp without time zone
+
 );
+
 ## To install dependencies
 pipenv install -r requirements.txt
 

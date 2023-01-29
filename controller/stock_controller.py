@@ -13,15 +13,7 @@ import json
 from nsetools import Nse
 import yfinance as yf
 from datetime import datetime, timedelta
-headersList = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/538.69 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/538.38",
-        "Accept": "application/json",
-        "Accept": "text/plain",
-        "Content-Encoding": "br",
-        "Connection": "close",
-        "Content-Encoding": "gzip",
-        "Content-Encoding": "deflate"
-    }
+
 nse = Nse()     
 class Stock:
     def __init__(self):
@@ -51,6 +43,7 @@ class Stock:
     
     async def get_quotes(self, name):
         try:
+            # process relevant info about Fundamentals
             data = self._session.query(Fundamentals).filter_by(name=name).order_by(desc(Fundamentals.time_created)).all()
             result = []
             for i in data:
@@ -126,6 +119,7 @@ class Stock:
         return {"message": "Successfully Commited {}".format(msg)}
 
     async def filter_relevant_stocks_metrics(self,payload_response, news):
+        # Currently operable only on NYSE, for NSE and BSE-> TODO
         # Filters all the information as per the metrics
         metrics = [("marketCap","float"),("symbol","str"),("sharesOutstanding","int"),("dividendRate","float"),\
                    ("debtToEquity","float"),("bookValue","float"),("returnOnEquity","float"),("currentRatio","float"),\
@@ -172,14 +166,19 @@ class Stock:
         )
         return metrics_data
     async def fundametals_to_table(self, payload_response, market_type, news):
+        # Populated Fundamentals table based on market_type and recieved metrics
+        # For NYSE
         if "NYSE" in market_type:
             to_create = await self.filter_relevant_stocks_metrics(payload_response,news)
+        # For BSE / NSE
+        # todo
+
         self._session.add(to_create)
         self._session.commit()    
         return
     async def fundamental_insertion(self,col,name):
+        # Fetched the data from nysetool/third party and updated it's fundamentals to the DB
         stock_db_data = row2dict(col)
-        
         if stock_db_data["name"]==name:
             if nse.is_valid_code(name):
                 #Need to add the fetcher 
@@ -199,7 +198,7 @@ class Stock:
             if length < 3: #Only 3 latest entries could be present at a time
                 return await self.fundamental_insertion(col,name)
             else:
-                # Delete older entries #todo
+                # Delete older entries 
                 count = 0
                 for id in f_data:
                     if count < 2:                        
@@ -216,6 +215,7 @@ class Stock:
         return {"message": "Successfully Deleted"}
 
     async def upload_file(name, contents):
+        #todo 
         xl_file = pd.read_csv("/stocks.csv")
         xl_file.head()
         xl_file.dropna(inplace=True)
