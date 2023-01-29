@@ -1,3 +1,4 @@
+.env
 Pipfile
 Pipfile.lock
 stockw_key.pem
@@ -8,4 +9,3 @@ api/__pycache__/*
 controller/__pycache__/*
 database/__pycache__/*
 routes/__pycache__/*
-.env

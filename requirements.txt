@@ -94,3 +94,4 @@ wsproto==1.1.0
 yahoo-fin==0.8.9.1
 yfinance==0.1.90
 zipp==3.11.0
+python-decouple

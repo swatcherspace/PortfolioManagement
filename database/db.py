@@ -7,9 +7,12 @@ from sqlalchemy.sql import func
 import uuid
 from decouple import config
 from sqlalchemy.orm import relationship
-
 # Alter the below with your DB to begin with
-SQLALCHEMY_DATABASE_URL = config("SQLALCHEMY_DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = config("SQLALCHEMY_DATABASE_URL")  \
+          +config("USERNAME")+":"+config("PASSWORD")+"@"+config("HOST") \
+            +":"+config("PORT")+"/"+config("DB_NAME")
+print(SQLALCHEMY_DATABASE_URL)
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 ## Global Session object
