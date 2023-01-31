@@ -49,8 +49,14 @@ pipenv install -r requirements.txt
 ## To Activate env
 pipenv shell
 
-## To run 
-uvicorn  main:app --reload 
+## To run in localhost
+python3 main.py localhost
+
+## To run in development server
+python3 main.py dev
+
+## To run in production server
+python3 main.py prod
 ```
 
 After the installation, depending on the address you've modified, do whatever f** you wanna do with it.
