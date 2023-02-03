@@ -50,7 +50,6 @@ pipenv install -r requirements.txt
 pipenv shell
 
 ## Activate env (in case of python env)
-
 source PATH_TO_ENV/bin/activate
 
 Check Server IP address in setup.sh before running on server
