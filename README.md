@@ -49,14 +49,13 @@ pipenv install -r requirements.txt
 ## To Activate env
 pipenv shell
 
-## To run in localhost
-python3 main.py localhost
+## Activate env (in case of python env)
 
-## To run in development server
-python3 main.py dev
+source PATH_TO_ENV/bin/activate
 
-## To run in production server
-python3 main.py prod
+Check Server IP address in setup.sh before running on server
+## Run setup file
+./setup.sh
 ```
 
 After the installation, depending on the address you've modified, do whatever f** you wanna do with it.
