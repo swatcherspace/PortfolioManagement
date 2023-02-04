@@ -1,3 +1,8 @@
+"""
+Author: Ratnam, abhi
+Date: 4th Feb, 2023
+Purpose: Handles DB connections
+"""
 from email.policy import default
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Float, JSON
 # from sqlalchemy.ext.declarative import declarative_base
@@ -7,23 +12,24 @@ from sqlalchemy.sql import func
 import uuid
 from decouple import config
 from sqlalchemy.orm import relationship
-# Alter the below with your DB to begin with
+
+"""Declare DB URL """
 SQLALCHEMY_DATABASE_URL = config("SQLALCHEMY_DATABASE_URL")  \
           +config("USERNAME")+":"+config("PASSWORD")+"@"+config("HOST") \
             +":"+config("PORT")+"/"+config("DB_NAME")
-print(SQLALCHEMY_DATABASE_URL)
+print("DB URL: ", SQLALCHEMY_DATABASE_URL)
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 ## Global Session object
+
 sess = {}
-
 Base = declarative_base()
-
 
 def generate_uuid():
     return str(uuid.uuid4())   
-        
+
+
 class Fundamentals(Base):
     __tablename__ = "fundamentals"
     id = Column(Integer, primary_key=True, index=True)
@@ -48,6 +54,7 @@ class Fundamentals(Base):
     
     parent_id = Column(Integer, ForeignKey("stocks.name", ondelete='CASCADE'))
 
+
 class Stocks(Base):
     __tablename__ = "stocks"
     id = Column(Integer, primary_key=True, index=True)
@@ -67,11 +74,16 @@ class Stocks(Base):
     child = relationship(Fundamentals, backref="stocks", passive_deletes=True)
 
 def init_schema():
+    """
+    Initialize schema- starts sessions
+    """
     try:
         if sess == {}:
             Base.metadata.create_all(create_engine(SQLALCHEMY_DATABASE_URL))
             session = sessionmaker(create_engine(SQLALCHEMY_DATABASE_URL))
             sess.update({"session": session()})
+            return sess['session']
+        else:
+            return sess['session']
     except Exception as e:
-        print(e)
-    return sess['session']
+        raise e

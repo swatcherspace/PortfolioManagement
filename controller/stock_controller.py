@@ -1,26 +1,30 @@
-
-from http.client import HTTPException
-import imp
-# from select import select
-import requests
-from config import row2dict
-from database.db import  Fundamentals,init_schema,Stocks #Fundamentals
+"""
+Author: Ratnam, Abhi
+Date: 4th Feb, 2023
+Purpose: Manages stock routes
+TODO: Add NSE and BSE into work
+"""
+import json
 import pandas as pd
 from datetime import datetime
-from models.stockModels import StocksModel
 from sqlalchemy import desc
-import json
+from http.client import HTTPException
 from nsetools import Nse
 import yfinance as yf
-from datetime import datetime, timedelta
+# from config import row2dict
+from database.db import  Fundamentals,init_schema,Stocks #Fundamentals
+from helper.support_functions import row2dict
 
-nse = Nse()     
+
 class Stock:
     def __init__(self):
+        self.nse = Nse()
         try:
             self._session = init_schema()
         except Exception as e:
-            raise HTTPException("Can't connect to the DB")
+            raise e
+
+
     async def get_news(self,data):
         news = []
         if "news" in data:
@@ -74,7 +78,7 @@ class Stock:
                         time_updated=ts
                     )
             except Exception as e:
-                return {"message": "KeyError in NSE".format(e)}
+                return {"message": "KeyError in NSE: {0}".format(e)}
                 
         elif "NYSE" in market_type:
             dt = datetime.now()    # for date and time
@@ -106,24 +110,35 @@ class Stock:
             if stock_db_data["name"]==name:
                 return {"message": "Entry Already Present"}   
         except AttributeError as a:
-            print("Table Not present hence creating..")
+            print("Table Not present hence creating..", a)
         except Exception as e:
             raise HTTPException("Error getting stocks from DB",e)
         print(yf.Ticker(name).info)
-        if nse.is_valid_code(name):
-            payload_response = nse.get_quote(name)
+        if self.nse.is_valid_code(name):
+            payload_response = self.nse.get_quote(name)
             msg = await self.stock_to_table(payload_response, "NSE")
         else:
             payload_response = yf.Ticker(name).info
             msg = await self.stock_to_table(payload_response, "NYSE")
         return {"message": "Successfully Commited {}".format(msg)}
 
+
     async def filter_relevant_stocks_metrics(self,payload_response, news):
-        # Currently operable only on NYSE, for NSE and BSE-> TODO
         # Filters all the information as per the metrics
-        metrics = [("marketCap","float"),("symbol","str"),("sharesOutstanding","int"),("dividendRate","float"),\
-                   ("debtToEquity","float"),("bookValue","float"),("returnOnEquity","float"),("currentRatio","float"),\
-                   ("trailingPE","float"),("currentPrice","float"),("trailingEps","float"),("dividendYield","float")]
+        metrics = [
+            ("marketCap","float"),
+            ("symbol","str"),
+            ("sharesOutstanding","int"),
+            ("dividendRate","float"),
+            ("debtToEquity","float"),
+            ("bookValue","float"),
+            ("returnOnEquity","float"),
+            ("currentRatio","float"),
+            ("trailingPE","float"),
+            ("currentPrice","float"),
+            ("trailingEps","float"),
+            ("dividendYield","float")
+        ]
         symbols_present = {}
         for i in metrics:
             if i[0] not in payload_response:
@@ -165,6 +180,8 @@ class Stock:
             time_updated=ts
         )
         return metrics_data
+
+
     async def fundametals_to_table(self, payload_response, market_type, news):
         # Populated Fundamentals table based on market_type and recieved metrics
         # For NYSE
@@ -176,38 +193,48 @@ class Stock:
         self._session.add(to_create)
         self._session.commit()    
         return
-    async def fundamental_insertion(self,col,name):
-        # Fetched the data from nysetool/third party and updated it's fundamentals to the DB
+
+
+    async def fundamental_insertion(self, col, name):
+        """
+        Fetched the data from nysetool/third party
+        updated it's fundamentals to the DB
+        """
         stock_db_data = row2dict(col)
         if stock_db_data["name"]==name:
-            if nse.is_valid_code(name):
-                #Need to add the fetcher 
-                return {"message": "Successfully create_fundamentals Commited"}
+            if self.nse.is_valid_code(name):
+                # Need to add the fetcher
+                return {"message": "Successfully create fundamentals Commited"}
+
             if float(yf.Ticker(name).info['regularMarketPrice']):
                 payload_response = yf.Ticker(name).info
                 news = yf.Ticker(name).news
                 await self.fundametals_to_table(payload_response, "NYSE", news)
             
-        return {"message": "Successfully create_fundamentals Commited"}
-    async def create_fundamentals(self,name):
+        return {"message": "Successfully create fundamentals Commited"}
+
+
+    async def create_fundamentals(self, name):
+        """
+        Creates Fundamentals in their table
+        """
         try:
             col = self._session.query(Stocks).filter_by(name=name).first()
             f_data = self._session.query(Fundamentals.id).filter_by(name=name).all()
             length = len(f_data)
             print(f_data, length)
-            if length < 3: #Only 3 latest entries could be present at a time
-                return await self.fundamental_insertion(col,name)
-            else:
-                # Delete older entries 
-                count = 0
+            if length >= 3: #Only 3 latest entries could be present at a time
+                # Delete all older entries
                 for id in f_data:
-                    if count < 2:                        
-                        self._session.query(Fundamentals).filter_by(id=id[0]).delete()
-                        count += 1
-                #Complete the above entry
-                return await self.fundamental_insertion(col,name)
+                    self._session.query(Fundamentals).filter_by(id=id[0]).delete()
+
+            # Complete the fundamental entry
+            return await self.fundamental_insertion(col, name)
         except AttributeError as a:
-            print("Table Not present",a)
+            print("Table Not present", a)
+        except Exception as e:
+            raise HTTPException("Error creating fundamentals: ", e)
+
 
     async def delete_stocks(self,name):
         self._session.query(Stocks).filter_by(name=name).delete()
@@ -262,13 +289,6 @@ async def create_stocks(name):
     except Exception as e:
         raise HTTPException("Error creating stocks",e)
 
-async def create_fundamentals(name):
-    stock = Stock()
-    try:
-        data = await stock.create_fundamentals(name)
-        return data
-    except Exception as e:
-        raise HTTPException("Error creating stocks",e)
 
 async def upload_file(name, contents):
     stock = Stock()
