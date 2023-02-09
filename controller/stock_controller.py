@@ -123,7 +123,7 @@ class Stock:
         return {"message": "Successfully Commited {}".format(msg)}
 
 
-    async def filter_relevant_stocks_metrics(self,payload_response, news):
+    async def filter_relevant_stocks_metrics(self, payload_response, news):
         # Filters all the information as per the metrics
         metrics = [
             ("marketCap","float"),
