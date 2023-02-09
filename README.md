@@ -49,8 +49,12 @@ pipenv install -r requirements.txt
 ## To Activate env
 pipenv shell
 
-## To run 
-uvicorn  main:app --reload 
+## Activate env (in case of python env)
+source PATH_TO_ENV/bin/activate
+
+Check Server IP address in setup.sh before running on server
+## Run setup file
+./setup.sh
 ```
 
 After the installation, depending on the address you've modified, do whatever f** you wanna do with it.
