@@ -54,7 +54,7 @@ class Stock:
             return news_data
         except Exception as a:
             print("Table Not present hence creating..",a)
-    async def stock_to_table(self, payload_response, market_type):
+    async def stock_to_table(self, name,payload_response, market_type):
         if "NSE" in market_type:
             dt = datetime.now()    # for date and time
             ts = datetime.utcnow()
@@ -97,7 +97,7 @@ class Stock:
             return {"message": "Ambiguous Data recieved"}
         self._session.add(to_create)
         self._session.commit()
-        return
+        return name
 
     async def create_stocks(self,name):
         try:
@@ -109,69 +109,76 @@ class Stock:
             print("Table Not present hence creating..")
         except Exception as e:
             raise HTTPException("Error getting stocks from DB",e)
-        print(yf.Ticker(name).info)
         if nse.is_valid_code(name):
             payload_response = nse.get_quote(name)
-            msg = await self.stock_to_table(payload_response, "NSE")
+            msg = await self.stock_to_table(name,payload_response, "NSE")
         else:
             payload_response = yf.Ticker(name).info
-            msg = await self.stock_to_table(payload_response, "NYSE")
+            msg = await self.stock_to_table(name,payload_response, "NYSE")
         return {"message": "Successfully Commited {}".format(msg)}
 
-    async def filter_relevant_stocks_metrics(self,payload_response, news):
+    async def filter_relevant_stocks_metrics(self,payload_response, news, market_type, name):
         # Currently operable only on NYSE, for NSE and BSE-> TODO
         # Filters all the information as per the metrics
-        metrics = [("marketCap","float"),("symbol","str"),("sharesOutstanding","int"),("dividendRate","float"),\
-                   ("debtToEquity","float"),("bookValue","float"),("returnOnEquity","float"),("currentRatio","float"),\
-                   ("trailingPE","float"),("currentPrice","float"),("trailingEps","float"),("dividendYield","float")]
-        symbols_present = {}
-        for i in metrics:
-            if i[0] not in payload_response:
-                if i[1]=="str":
-                    symbols_present[i[0]] = ""
-                elif i[1]=="float":
-                    symbols_present[i[0]] = 0.0
-                elif i[1]=="int":
-                    symbols_present[i[0]] = 1
-                continue
-            symbols_present[i[0]] = payload_response[i[0]]
-        cap_type = ""
-        if symbols_present["marketCap"]> 20000:
-            cap_type = "Large-Cap"
-        elif symbols_present["marketCap"]< 5000:
-            cap_type = "Small-Cap"
-        else:
-            cap_type = "Mid-Cap"
-        dt = datetime.now()    # for date and time
-        ts = datetime.utcnow()
-        metrics_data = Fundamentals(
-            name = symbols_present["symbol"],
-            shares_outstanding = symbols_present["sharesOutstanding"],
-            dividend_rate = symbols_present["dividendRate"],
-            debt_to_equity = symbols_present["debtToEquity"],
-            book_value_per_share = symbols_present["bookValue"],
-            roe = symbols_present["returnOnEquity"],
-            current_ratio = symbols_present["currentRatio"],
-            pe_ratio = symbols_present["trailingPE"],
-            pb_ratio = symbols_present["currentPrice"]/symbols_present["trailingEps"],
-            market_cap = symbols_present["marketCap"],
-            earning_per_share = symbols_present["trailingEps"],
-            industry_pe = float(0.0),
-            capped_type = cap_type,
-            dividend_yield_percent = symbols_present["dividendYield"],
-            face_value = 0,
-            news = json.dumps(news,default=str),
-            time_created=dt, #traded date
-            time_updated=ts
-        )
-        return metrics_data
-    async def fundametals_to_table(self, payload_response, market_type, news):
+        if "NSE" in market_type:
+           pass
+
+            
+        if "NYSE" in market_type:
+
+            metrics = [("marketCap","float"),("symbol","str"),("sharesOutstanding","int"),("dividendRate","float"),\
+                    ("debtToEquity","float"),("bookValue","float"),("returnOnEquity","float"),("currentRatio","float"),\
+                    ("trailingPE","float"),("currentPrice","float"),("trailingEps","float"),("dividendYield","float")]
+            symbols_present = {}
+            for i in metrics:
+                if i[0] not in payload_response:
+                    if i[1]=="str":
+                        symbols_present[i[0]] = ""
+                    elif i[1]=="float":
+                        symbols_present[i[0]] = 0.0
+                    elif i[1]=="int":
+                        symbols_present[i[0]] = 1
+                    continue
+                symbols_present[i[0]] = payload_response[i[0]]
+            cap_type = ""
+            if symbols_present["marketCap"]> 20000:
+                cap_type = "Large-Cap"
+            elif symbols_present["marketCap"]< 5000:
+                cap_type = "Small-Cap"
+            else:
+                cap_type = "Mid-Cap"
+            dt = datetime.now()    # for date and time
+            ts = datetime.utcnow()
+            metrics_data = Fundamentals(
+                name = symbols_present["symbol"],
+                shares_outstanding = symbols_present["sharesOutstanding"],
+                dividend_rate = symbols_present["dividendRate"],
+                debt_to_equity = symbols_present["debtToEquity"],
+                book_value_per_share = symbols_present["bookValue"],
+                roe = symbols_present["returnOnEquity"],
+                current_ratio = symbols_present["currentRatio"],
+                pe_ratio = symbols_present["trailingPE"],
+                pb_ratio = symbols_present["currentPrice"]/symbols_present["trailingEps"],
+                market_cap = symbols_present["marketCap"],
+                earning_per_share = symbols_present["trailingEps"],
+                industry_pe = float(0.0),
+                capped_type = cap_type,
+                dividend_yield_percent = symbols_present["dividendYield"],
+                face_value = 0,
+                news = json.dumps(news,default=str),
+                time_created=dt, #traded date
+                time_updated=ts
+            )
+            return metrics_data
+    async def fundametals_to_table(self, payload_response, market_type, news, name):
         # Populated Fundamentals table based on market_type and recieved metrics
         # For NYSE
+        if "NSE" in market_type:
+            return
+            #Data isn't fetched
+            to_create = await self.filter_relevant_stocks_metrics(payload_response,news,market_type, name)
         if "NYSE" in market_type:
-            to_create = await self.filter_relevant_stocks_metrics(payload_response,news)
-        # For BSE / NSE
-        # todo
+            to_create = await self.filter_relevant_stocks_metrics(payload_response,news,market_type, name)
 
         self._session.add(to_create)
         self._session.commit()    
@@ -182,13 +189,14 @@ class Stock:
         if stock_db_data["name"]==name:
             if nse.is_valid_code(name):
                 #Need to add the fetcher 
+                await self.fundametals_to_table(None, "NSE", None, name)
                 return {"message": "Successfully create_fundamentals Commited"}
             if float(yf.Ticker(name).info['regularMarketPrice']):
                 payload_response = yf.Ticker(name).info
                 news = yf.Ticker(name).news
-                await self.fundametals_to_table(payload_response, "NYSE", news)
-            
-        return {"message": "Successfully create_fundamentals Commited"}
+                
+                await self.fundametals_to_table(payload_response, "NYSE", news, name)
+                return {"message": "Successfully create_fundamentals Commited"}
     async def create_fundamentals(self,name):
         try:
             col = self._session.query(Stocks).filter_by(name=name).first()
