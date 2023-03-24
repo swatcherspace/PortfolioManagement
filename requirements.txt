@@ -6,6 +6,7 @@ appdirs==1.4.4
 asgiref==3.5.0
 async-timeout==4.0.2
 atlastk==0.13
+autopep8==2.0.1
 beautifulsoup4==4.11.1
 bs4==0.0.1
 certifi==2022.6.15
@@ -36,6 +37,7 @@ hypercorn==0.13.2
 hyperframe==6.0.1
 idna==3.3
 importlib-metadata==5.1.0
+importlib-resources==5.10.2
 Jinja2==3.1.2
 lxml==4.9.2
 Mako==1.2.4
@@ -51,6 +53,7 @@ platformdirs==2.5.2
 pptree==3.1
 priority==2.0.0
 psycopg2-binary==2.9.5
+pycodestyle==2.10.0
 pydantic==1.9.0
 pyee==8.2.2
 pylev==1.4.0
@@ -58,6 +61,7 @@ pyparsing==3.0.7
 pyppeteer==1.0.2
 pyquery==1.4.3
 python-dateutil==2.8.2
+python-decouple==3.7
 python-dotenv==0.19.2
 python-multipart==0.0.5
 python-ulid==1.1.0
@@ -75,6 +79,7 @@ SQLAlchemy==1.4.45
 sqlparse==0.4.3
 starlette==0.17.1
 toml==0.10.2
+tomli==2.0.1
 tomli_w==1.0.0
 tortoise==0.1.1
 tqdm==4.64.1
@@ -94,4 +99,3 @@ wsproto==1.1.0
 yahoo-fin==0.8.9.1
 yfinance==0.1.90
 zipp==3.11.0
-python-decouple
