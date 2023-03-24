@@ -15,8 +15,7 @@ class StocksModel(BaseModel):
     highPriceRange:float
     time_created:Optional[date]  
     time_updated:Optional[date] 
-    class Config:
-        orm_mode = True
+    
 class Fundamentals(BaseModel):
     name:str
     shares_outstanding:int
@@ -34,5 +33,11 @@ class Fundamentals(BaseModel):
     dividend_yield_percent:float
     face_value:float
     news:str
+    pricebandupper:float
+    total_sell_quantity:float 
+    total_traded_val:float
+    quantity_traded:float
+    percentage_change:str
+    ISINCode:str
     time_created:Optional[date]
     time_updated:Optional[date]

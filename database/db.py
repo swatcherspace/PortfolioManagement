@@ -43,10 +43,16 @@ class Fundamentals(Base):
     dividend_yield_percent = Column(Float)
     face_value =  Column(Integer)
     news = Column(JSON)
+    pricebandupper = Column(Float)
+    total_sell_quantity = Column(Float) 
+    total_traded_val = Column(Float)
+    quantity_traded = Column(Float)
+    percentage_change = Column(String)
+    ISINCode = Column(String)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
     
-    parent_id = Column(Integer, ForeignKey("stocks.name", ondelete='CASCADE'))
+    parent_id = Column(Integer, ForeignKey("stocks.id", ondelete='CASCADE'))
 
 class Stocks(Base):
     __tablename__ = "stocks"

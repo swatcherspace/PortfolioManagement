@@ -1,18 +1,19 @@
 
-from http.client import HTTPException
 import imp
+import json
+from datetime import datetime, timedelta
+from http.client import HTTPException
+
+import pandas as pd
 # from select import select
 import requests
-from config import row2dict
-from database.db import  Fundamentals,init_schema,Stocks #Fundamentals
-import pandas as pd
-from datetime import datetime
-from models.stockModels import StocksModel
-from sqlalchemy import desc
-import json
-from nsetools import Nse
 import yfinance as yf
-from datetime import datetime, timedelta
+from nsetools import Nse
+from sqlalchemy import desc
+
+from config import row2dict
+from database.db import Fundamentals, Stocks, init_schema  # Fundamentals
+from models.stockModels import StocksModel
 
 nse = Nse()     
 class Stock:
@@ -34,7 +35,7 @@ class Stock:
     async def get_fundamentals(self,name):
         data = self._session.query(Fundamentals).filter_by(name=name).first()
         data =  row2dict(data)
-        data["news"] = await self.get_news(data)
+        # data["news"] = await self.get_news(data)
         return data
     
     async def get_stocks(self,name):
@@ -111,35 +112,53 @@ class Stock:
             raise HTTPException("Error getting stocks from DB",e)
         if nse.is_valid_code(name):
             payload_response = nse.get_quote(name)
+            print(payload_response)
             msg = await self.stock_to_table(name,payload_response, "NSE")
         else:
             payload_response = yf.Ticker(name).info
+            print(payload_response)
             msg = await self.stock_to_table(name,payload_response, "NYSE")
         return {"message": "Successfully Commited {}".format(msg)}
-
+    @staticmethod
+    def filter_metrics(payload_response,metrics):
+        symbols_present = {}
+        for i in metrics:
+            if i[0] not in payload_response:
+                if i[1]=="str":
+                    symbols_present[i[0]] = ""
+                elif i[1]=="float":
+                    symbols_present[i[0]] = 0.0
+                elif i[1]=="int":
+                    symbols_present[i[0]] = 1
+                continue
+            symbols_present[i[0]] = payload_response[i[0]]
+        return symbols_present
     async def filter_relevant_stocks_metrics(self,payload_response, news, market_type, name):
         # Currently operable only on NYSE, for NSE and BSE-> TODO
         # Filters all the information as per the metrics
         if "NSE" in market_type:
-           pass
-
+            dt = datetime.now()    # for date and time
+            ts = datetime.utcnow()
+            metrics = [('pricebandupper','float'),('totalSellQuantity','float') ,('totalTradedValue','float'),('quantityTraded','float'),('pChange','str'),('isinCode','str')]
+            symbols_present = Stock.filter_metrics(payload_response, metrics) 
+            metrics_data = Fundamentals(
+                name = payload_response["symbol"],
+                pricebandupper = payload_response["pricebandupper"],
+                total_sell_quantity = symbols_present["totalSellQuantity"],
+                total_traded_val = symbols_present["totalTradedValue"],
+                quantity_traded = symbols_present["quantityTraded"],
+                percentage_change = symbols_present["pChange"],
+                ISINCode = symbols_present["isinCode"],
+                news = json.dumps(news,default=str)
+            )
+            return metrics_data
             
         if "NYSE" in market_type:
 
             metrics = [("marketCap","float"),("symbol","str"),("sharesOutstanding","int"),("dividendRate","float"),\
                     ("debtToEquity","float"),("bookValue","float"),("returnOnEquity","float"),("currentRatio","float"),\
                     ("trailingPE","float"),("currentPrice","float"),("trailingEps","float"),("dividendYield","float")]
-            symbols_present = {}
-            for i in metrics:
-                if i[0] not in payload_response:
-                    if i[1]=="str":
-                        symbols_present[i[0]] = ""
-                    elif i[1]=="float":
-                        symbols_present[i[0]] = 0.0
-                    elif i[1]=="int":
-                        symbols_present[i[0]] = 1
-                    continue
-                symbols_present[i[0]] = payload_response[i[0]]
+            symbols_present = Stock.filter_metrics(payload_response,metrics)
             cap_type = ""
             if symbols_present["marketCap"]> 20000:
                 cap_type = "Large-Cap"
@@ -174,8 +193,6 @@ class Stock:
         # Populated Fundamentals table based on market_type and recieved metrics
         # For NYSE
         if "NSE" in market_type:
-            return
-            #Data isn't fetched
             to_create = await self.filter_relevant_stocks_metrics(payload_response,news,market_type, name)
         if "NYSE" in market_type:
             to_create = await self.filter_relevant_stocks_metrics(payload_response,news,market_type, name)
@@ -189,7 +206,9 @@ class Stock:
         if stock_db_data["name"]==name:
             if nse.is_valid_code(name):
                 #Need to add the fetcher 
-                await self.fundametals_to_table(None, "NSE", None, name)
+                payload_response = nse.get_quote(name)
+                news = payload_response["purpose"]
+                await self.fundametals_to_table(payload_response, "NSE", news, name)
                 return {"message": "Successfully create_fundamentals Commited"}
             if float(yf.Ticker(name).info['regularMarketPrice']):
                 payload_response = yf.Ticker(name).info
