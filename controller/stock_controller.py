@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 from http.client import HTTPException
 
+from pathlib import Path
 import pandas as pd
 # from select import select
 import requests
@@ -22,20 +23,14 @@ class Stock:
             self._session = init_schema()
         except Exception as e:
             raise HTTPException("Can't connect to the DB")
-    async def get_news(self,data):
-        news = []
-        if "news" in data:
-            news_data = json.loads(data["news"])
-            for i in news_data:
-                # Fetch 10 latest news    
-                if len(news) <= 10:
-                    news.append((i["title"], i["publisher"], i["link"], i["providerPublishTime"]))
-        return news
+    @staticmethod
+    async def get_news(data):
+        news_data = json.loads(data["news"])
+        return news_data
 
     async def get_fundamentals(self,name):
         data = self._session.query(Fundamentals).filter_by(name=name).first()
         data =  row2dict(data)
-        # data["news"] = await self.get_news(data)
         return data
     
     async def get_stocks(self,name):
@@ -249,14 +244,23 @@ class Stock:
         xl_file.columns = xl_file.iloc[0]
         xl_file = xl_file[1:]
 
-    async def get_symbols(self):
+    async def get_symbols(self, market_type):
         #Wiki for reference/ may change later
-        data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+        if market_type=="NYSE":
+            data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+            symbol = data["Symbol"].to_list()
+            name = data["Security"].to_list()
+            sp = dict(zip(symbol, name))
+            df = pd.Series(sp)
+            df.to_csv(str(Path().resolve())+'/NYSE.csv')
+        elif market_type=="NSE":
+            data = nse.get_stock_codes()
+            df = pd.Series(data)
+            df.to_csv(str(Path().resolve())+'/NSE.csv')
         #Convert to list
-        symbol = data["Symbol"].to_list()
-        name = data["Security"].to_list()
-        sp = dict(zip(symbol, name))
-        return sp
+
+        
+        return "Success"
 
 async def get_fundamentals(name):
     stock = Stock()
@@ -314,10 +318,10 @@ async def delete_stocks(name):
     except Exception as e:
         raise HTTPException("Error deleting stocks",e)
     
-async def get_symbols():
+async def get_symbols(market_type):
     stock = Stock()
     try:
-       data = await stock.get_symbols()
+       data = await stock.get_symbols(market_type)
        return data
     except Exception as e:
         raise HTTPException("Error getting stock symbols",e)

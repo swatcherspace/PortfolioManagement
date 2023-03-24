@@ -12,3 +12,5 @@ routes/__pycache__/*
 models/__pycache__/*
 alembic/*
 alembic.ini
+NSE.csv
+NYSE.csv
