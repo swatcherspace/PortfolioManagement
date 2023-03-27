@@ -14,7 +14,17 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi import File, UploadFile
 dt = datetime.now()    # for date and time
 ts = datetime.utcnow()   # for timestamp
+from scheduler import app as app_rocketry
 stock = FastAPI()
+
+session = app_rocketry.session
+
+# Create some routes:
+
+@stock.get("/my-route")
+async def get_tasks():
+    # We can modify/read the Rocketry's runtime session
+    return session.tasks
 
 @stock.post("/upload-file")
 async def upload_file(name: str, file: UploadFile = File(...)):

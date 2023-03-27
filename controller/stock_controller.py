@@ -3,7 +3,7 @@ import imp
 import json
 from datetime import datetime, timedelta
 from http.client import HTTPException
-
+import pickle
 from pathlib import Path
 import pandas as pd
 # from select import select
@@ -17,6 +17,7 @@ from database.db import Fundamentals, Stocks, init_schema  # Fundamentals
 from models.stockModels import StocksModel
 
 nse = Nse()     
+
 class Stock:
     def __init__(self):
         try:
@@ -50,6 +51,7 @@ class Stock:
             return news_data
         except Exception as a:
             print("Table Not present hence creating..",a)
+
     async def stock_to_table(self, name,payload_response, market_type):
         if "NSE" in market_type:
             dt = datetime.now()    # for date and time
@@ -244,23 +246,7 @@ class Stock:
         xl_file.columns = xl_file.iloc[0]
         xl_file = xl_file[1:]
 
-    async def get_symbols(self, market_type):
-        #Wiki for reference/ may change later
-        if market_type=="NYSE":
-            data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
-            symbol = data["Symbol"].to_list()
-            name = data["Security"].to_list()
-            sp = dict(zip(symbol, name))
-            df = pd.Series(sp)
-            df.to_csv(str(Path().resolve())+'/NYSE.csv')
-        elif market_type=="NSE":
-            data = nse.get_stock_codes()
-            df = pd.Series(data)
-            df.to_csv(str(Path().resolve())+'/NSE.csv')
-        #Convert to list
-
-        
-        return "Success"
+    
 
 async def get_fundamentals(name):
     stock = Stock()
@@ -321,8 +307,10 @@ async def delete_stocks(name):
 async def get_symbols(market_type):
     stock = Stock()
     try:
-       data = await stock.get_symbols(market_type)
-       return data
+       # Load data (deserialize)
+        with open(market_type.upper()+'.pickle', 'rb') as handle:
+            unserialized_data = pickle.load(handle)
+        return unserialized_data
     except Exception as e:
         raise HTTPException("Error getting stock symbols",e)
     
