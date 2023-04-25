@@ -126,7 +126,7 @@ last_price = {}
 def Get_Latest_Price(coin, currency):
     import requests
     # replace the "demo" apikey below with your own key from https://www.alphavantage.co/support/#api-key
-    url = f'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={coin}&to_currency={currency}&apikey=XAGTPID8LTX34JMJ'
+    url = f'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={coin}&to_currency={currency}&apikey=API-KEY'
     r = requests.get(url)
     data = r.json()
     return float(data['Realtime Currency Exchange Rate']['8. Bid Price'])
