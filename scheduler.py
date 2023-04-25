@@ -5,34 +5,34 @@ import pickle
 import nsetools
 from controller.stock_controller import nse 
 from rocketry import Rocketry
-from rocketry.conds import monthly
+from rocketry.conds import monthly, minutely
 import random
 app = Rocketry()
 
 # Create some tasks:
 
-@app.task(monthly.after("1"))
+@app.task(monthly.after("2"))
 def scrape_symbols():
     try:
-        print("Hi")
-        market_type = random.choice(["NSE", "NYSE"])
+        market_type = random.choice([ "NSE","NYSE"])
         #Wiki for reference/ may change later
         if market_type=="NYSE":
             data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
             symbol = data["Symbol"].to_list()
             name = data["Security"].to_list()
-            sp = dict(zip(symbol, name))
+            name_to_symbol = dict(zip(name,symbol))
+            symbol_to_name = dict(zip(symbol, name))
             # Store data (serialize)
             with open(market_type+'.pickle', 'wb') as handle:
-                pickle.dump(sp, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump([name_to_symbol, symbol_to_name], handle, protocol=pickle.HIGHEST_PROTOCOL)
         elif market_type=="NSE":
             data = nse.get_stock_codes()
-            data = dict(data)
+            symbol_to_name = dict(data)
+            name_to_symbol = {v: k for k, v in symbol_to_name.items()}
             with open(market_type+'.pickle', 'wb') as handle:
-                pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)   
+                pickle.dump([name_to_symbol, symbol_to_name], handle, protocol=pickle.HIGHEST_PROTOCOL)   
         #Convert to list
         return "Success"
     except Exception as e:
         print(e)
     ...
-

@@ -102,3 +102,5 @@ zipp==3.11.0
 apscheduler
 fastapi-scheduler
 rocketry
+decouple
+python-decouple
