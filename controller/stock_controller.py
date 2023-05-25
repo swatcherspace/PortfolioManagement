@@ -1,9 +1,10 @@
 
 import imp
 import json
+import sys
 from datetime import datetime, timedelta
 from http.client import HTTPException
-
+import pickle
 from pathlib import Path
 import pandas as pd
 # from select import select
@@ -15,8 +16,10 @@ from sqlalchemy import desc
 from config import row2dict
 from database.db import Fundamentals, Stocks, init_schema  # Fundamentals
 from models.stockModels import StocksModel
-
+from decouple import Config
+from utils import LDS
 nse = Nse()     
+
 class Stock:
     def __init__(self):
         try:
@@ -28,9 +31,25 @@ class Stock:
         news_data = json.loads(data["news"])
         return news_data
 
+    @staticmethod
+    async def get_cash_flow(symbol):
+        # replace the "demo" apikey below with your own key from https://www.alphavantage.co/support/#api-key
+        url = 'https://www.alphavantage.co/query?function=CASH_FLOW&symbol='+symbol+'&apikey='+'API-KEY-VALUES'
+        r = requests.get(url)
+        data = r.json()['annualReports']
+        operating_cash_flow_data = []
+        for annualreport in data:
+          operating_cash_flow_data.append(int(annualreport['operatingCashflow']))
+        if LDS(operating_cash_flow_data) > 2:
+            return True
+        else:
+            return False
+        
     async def get_fundamentals(self,name):
         data = self._session.query(Fundamentals).filter_by(name=name).first()
         data =  row2dict(data)
+        cash_flow = await Stock.get_cash_flow(name)
+        data['cashflow'] = cash_flow
         return data
     
     async def get_stocks(self,name):
@@ -50,6 +69,7 @@ class Stock:
             return news_data
         except Exception as a:
             print("Table Not present hence creating..",a)
+
     async def stock_to_table(self, name,payload_response, market_type):
         if "NSE" in market_type:
             dt = datetime.now()    # for date and time
@@ -217,7 +237,7 @@ class Stock:
             f_data = self._session.query(Fundamentals.id).filter_by(name=name).all()
             length = len(f_data)
             print(f_data, length)
-            if length < 3: #Only 3 latest entries could be present at a time
+            if length < 2: #Only 1 latest entries could be present at a time
                 return await self.fundamental_insertion(col,name)
             else:
                 # Delete older entries 
@@ -244,23 +264,7 @@ class Stock:
         xl_file.columns = xl_file.iloc[0]
         xl_file = xl_file[1:]
 
-    async def get_symbols(self, market_type):
-        #Wiki for reference/ may change later
-        if market_type=="NYSE":
-            data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
-            symbol = data["Symbol"].to_list()
-            name = data["Security"].to_list()
-            sp = dict(zip(symbol, name))
-            df = pd.Series(sp)
-            df.to_csv(str(Path().resolve())+'/NYSE.csv')
-        elif market_type=="NSE":
-            data = nse.get_stock_codes()
-            df = pd.Series(data)
-            df.to_csv(str(Path().resolve())+'/NSE.csv')
-        #Convert to list
-
-        
-        return "Success"
+    
 
 async def get_fundamentals(name):
     stock = Stock()
@@ -321,8 +325,10 @@ async def delete_stocks(name):
 async def get_symbols(market_type):
     stock = Stock()
     try:
-       data = await stock.get_symbols(market_type)
-       return data
+       # Load data (deserialize)
+        with open(market_type.upper()+'.pickle', 'rb') as handle:
+            unserialized_data = pickle.load(handle)
+        return unserialized_data
     except Exception as e:
         raise HTTPException("Error getting stock symbols",e)
     
