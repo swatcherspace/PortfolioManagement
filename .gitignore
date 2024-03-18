@@ -3,7 +3,7 @@ Pipfile
 Pipfile.lock
 stockw_key.pem
 .DS_Store
-venv/
+venv/*
 __pycache__/*
 api/__pycache__/*
 controller/__pycache__/*

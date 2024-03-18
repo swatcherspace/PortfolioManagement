@@ -15,6 +15,20 @@ class StocksModel(BaseModel):
     highPriceRange:float
     time_created:Optional[date]  
     time_updated:Optional[date] 
+
+class CryptoModel(BaseModel):
+    name :str
+    market  :str
+    high :float
+    low :float
+    volume :float
+    lastPrice :float
+    bid :float
+    ask : float
+    day_change : float
+    timestamp :Optional[date]
+    time_created :Optional[date]
+    time_updated :Optional[date]
     
 class Fundamentals(BaseModel):
     name:str
