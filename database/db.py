@@ -71,13 +71,34 @@ class Stocks(Base):
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
     
     child = relationship(Fundamentals, backref="stocks", passive_deletes=True)
+class Cryptos(Base):
+    __tablename__ = "cryptos"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    market = Column(String)
+    high = Column(Float)
+    low = Column(Float)
+    volume = Column(Float)
+    lastPrice = Column(Float)
+    bid = Column(Float)
+    ask = Column(Float)
+    day_change = Column(Float)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+    
+sess = {}
 
 def init_schema():
+    global sess  # Use global keyword to modify the global variable
     try:
-        if sess == {}:
+        if not isinstance(sess, dict):  # Check if sess is a dictionary
+            raise ValueError("sess must be a dictionary")
+        
+        if not sess:
             Base.metadata.create_all(create_engine(SQLALCHEMY_DATABASE_URL))
-            session = sessionmaker(create_engine(SQLALCHEMY_DATABASE_URL))
-            sess.update({"session": session()})
+            Session = sessionmaker(bind=create_engine(SQLALCHEMY_DATABASE_URL))
+            sess["session"] = Session()
     except Exception as e:
         print(e)
-    return sess['session']
+    return sess.get("session")  # Return the session directly

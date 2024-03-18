@@ -1,17 +1,7 @@
 
 import pandas as pd
-from api.stocks import Stocks
 import pickle
-import nsetools
-from controller.stock_controller import nse 
-from rocketry import Rocketry
-from rocketry.conds import monthly, minutely
 import random
-app = Rocketry()
-
-# Create some tasks:
-
-@app.task(monthly.after("2"))
 def scrape_symbols():
     try:
         market_type = random.choice([ "NSE","NYSE"])

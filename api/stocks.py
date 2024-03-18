@@ -1,30 +1,19 @@
 from datetime import datetime
-import imp
 import aiofiles
-from config import row2dict
 from fastapi import FastAPI
-from typing import Optional
-from database.db import Stocks
-from models.stockModels import StocksModel
-import requests
-import pandas as pd
 from controller import stock_controller
-from sqlalchemy.orm import Session
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi import File, UploadFile
 dt = datetime.now()    # for date and time
 ts = datetime.utcnow()   # for timestamp
-from scheduler import app as app_rocketry
 stock = FastAPI()
-
-session = app_rocketry.session
 
 # Create some routes:
 
-@stock.get("/my-route")
-async def get_tasks():
-    # We can modify/read the Rocketry's runtime session
-    return session.tasks
+# @stock.get("/my-route")
+# async def get_tasks():
+#     # We can modify/read the Rocketry's runtime session
+#     return session.tasks
 
 @stock.post("/upload-file")
 async def upload_file(name: str, file: UploadFile = File(...)):
@@ -45,10 +34,10 @@ async def create(name: str):
     return await stock_controller.create_fundamentals(name)
 
 @stock.post("/create-stock")
-async def create(name: str):
+async def create(name: str, market_type: str):
     if name is None:
         return {"Message":"Please enter the name"}
-    return await stock_controller.create_stocks(name)
+    return await stock_controller.create_stocks(name, market_type)
 
 @stock.delete("/delete-stock")
 async def delete(name: str):
